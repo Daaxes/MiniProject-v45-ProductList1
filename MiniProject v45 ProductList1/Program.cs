@@ -41,22 +41,26 @@ Display prodList = new Display(ConsoleColor.DarkYellow, ConsoleColor.Cyan, Conso
 // List to store products
 List<Product> productList = new List<Product>();
 
-// Display initial message
 
 while (true)
 {   // Prompt user for store input based on the current input flag
     if (inputFlag == 0)
-    {
+    {   // Display initial message
         display.Print("To enter a new product - Follow the steps | to Quit enter [Q/q] [Quit] [Exit]", 0, 0, 0);
     }
     if (inputFlag < 3)
     {
         display.Print($"Enter a {categories[inputFlag]}: ", 1);
     }
-    else
-    {
+    else if (inputFlag == 4)
+    {   // Change to choice [A] [S] instead of Add products
         display.ClearLine(0, 2);
         display.Print($"Enter a {categories[3]}: ", 1, 0, 3);
+    }
+    else if (inputFlag == 5)
+    {
+        display.ClearLine(0, 2);
+        display.Print($"Enter the product you want to search for: ", 1, 0, 3);
     }
     string input = Console.ReadLine();
     // Check for exit command
@@ -114,7 +118,7 @@ while (true)
             display.Print("Price input is not a number, Try again!", 2, 0, 3);
             Thread.Sleep(milliseconds);
         }
-    }
+    } // Sort and Print out List object
     if (inputFlag == 3)
     {
         display.Print("Product list ", 0, 0, 0);
@@ -127,50 +131,59 @@ while (true)
         {
             prodList.Print(product, 1, prodListPosX, prodListPosY + counter);
             counter++;
-//          prodListPosY++;
         }
         // Calculate the sum of price with LINQ 
         prodList.ClearAltCursurPos();
         counter++;
-//        prodListPosY++;
         prodList.Print("(" + productList.Sum(Product => Product.ProductPrice) + ")", 3, prodListPosX + 29, prodListPosY + counter);
-        inputFlag = 4;    
-    }
-    if(inputFlag == 4)
-        {
+        inputFlag = 4;
+    }   // If 'A' Continuing add products to List
+        // If 'S' Search for a Product
+    if (inputFlag == 4)
+    {
         display.Print("Search product in list [S/s] | Add more products [A/a] to Quit enter [Q/q] [Quit] [Exit]", 0, 0, 1);
-        if (input.ToUpper() == "A") 
+        if (input.ToUpper() == "A")
         {
-        
-        for (int i = 0;i <= counter + prodListPosY;i++)
-        {
-            if (i != prodListPosY)
+
+            for (int i = 0; i <= counter + prodListPosY; i++)
             {
-                display.ClearLine(0, i);                }
+                if (i != prodListPosY)
+                {
+                    display.ClearLine(0, i);
+                }
+                inputFlag = 0;
+                counter = 0;
             }
- //           Console.Clear();
-            inputFlag = 0;
+        }
+        else if (input.ToUpper() == "S")
+        {
+            inputFlag = 5;
             counter = 0;
         }
+    }// Print out search product name   
+    if (inputFlag == 5 && input.Length > 0)
+    {
+        counter = 0;
+        // Sorting the product list
+        List<Product> sortedProdList = productList.OrderBy(Product => Product.ProductPrice).ToList();
+        // Displaying the product list
+        foreach (Product product in sortedProdList)
+        {
+            if (product.ProductName.ToUpper().Equals(input.ToUpper()))
+            {
+                prodList.Print(product, 3, prodListPosX, prodListPosY + counter);
+                counter++;
+            }
+            else
+            {
+                prodList.Print(product, 1, prodListPosX, prodListPosY + counter);
+                counter++;
+            }
+        }
+
     }
 }
-
-
-/*
-// Sorting the product list
-List<Product> sortedProdList = productList.OrderBy(Product => Product.ProductPrice).ToList();
-
-// Displaying the product list
-foreach (Product product in sortedProdList)
-{
-    prodList.Print(product, 1, prodListPosX, prodListPosY);
-    prodListPosY++;
-}
-// Calculate the sum of price with LINQ 
-prodList.ClearAltCursurPos();
-prodListPosY++;
-prodList.Print("(" + productList.Sum(Product => Product.ProductPrice) + ")", 3, prodListPosX + 29, prodListPosY);
-*/
+// Resets Forground color
 Console.ResetColor();
 
 // Display class for handling different types of messages
@@ -193,14 +206,6 @@ class Display
     public ConsoleColor DoneColor;
 
     // Constructors
-    public Display(ConsoleColor titleColor, ConsoleColor normalColor, ConsoleColor errorColor, ConsoleColor infoColor, ConsoleColor doneColor)
-    {
-        TitleColor = titleColor;
-        NormalColor = normalColor;
-        ErrorColor = errorColor;
-        InfoColor = infoColor;
-        DoneColor = doneColor;
-    }
     public Display(ConsoleColor titleColor, ConsoleColor normalColor, ConsoleColor errorColor, ConsoleColor infoColor, ConsoleColor doneColor, int posX, int posY)
     {
         TitleColor = titleColor;
@@ -284,9 +289,6 @@ class Display
     // Metode for print out from class Product
     public void Print(Product prodList, int msgType, int posX, int posY)
     {
-//        int showMenu = 0;
-//       SetCursurPos(posX, posY);
-
         if (this.showMenu == 0)
         {
             SetCursurPos(posX, posY);
@@ -339,10 +341,6 @@ class Display
 class Product
 {
     // Constructors
-    public Product()
-    {
-    }
-
     public Product(int productId, string productCategory, string productName, int productPrice)
     {
         ProductId = productId;
