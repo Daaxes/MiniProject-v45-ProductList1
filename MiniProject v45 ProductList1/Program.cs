@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 
 // Array of category names
-string[] categories = new string[] { "Category", "Product", "Price" };
+string[] categories = new string[] { "Category", "Product", "Price", "choise" };
 
 // String builders to accumulate user input and price to temporary store data to List
 StringBuilder categ = new StringBuilder();// = new string[];
@@ -18,7 +18,7 @@ int dispPosY = 2;
 
 // Positions for displaying the product list
 int prodListPosX = 0;
-int prodListPosY = 2;
+int prodListPosY = 5;
 
 // Counter for displaying products
 int counter = 0;
@@ -42,17 +42,31 @@ Display prodList = new Display(ConsoleColor.DarkYellow, ConsoleColor.Cyan, Conso
 List<Product> productList = new List<Product>();
 
 // Display initial message
-display.Print("To enter a new product - Follow the steps | to Quit enter [Q/q] [Quit] [Exit]", 0, 0 ,0);
 
 while (true)
 {   // Prompt user for store input based on the current input flag
-    display.Print($"Enter a {categories[inputFlag]}: ", 1);
+    if (inputFlag == 0)
+    {
+        display.Print("To enter a new product - Follow the steps | to Quit enter [Q/q] [Quit] [Exit]", 0, 0, 0);
+    }
+    if (inputFlag < 3)
+    {
+        display.Print($"Enter a {categories[inputFlag]}: ", 1);
+    }
+    else
+    {
+        display.ClearLine(0, 2);
+        display.Print($"Enter a {categories[3]}: ", 1, 0, 3);
+    }
     string input = Console.ReadLine();
-
     // Check for exit command
     if (input.ToUpper() == "Q" || input.ToUpper() == "QUIT" || input.ToUpper() == "EXIT")
     {
-        break;
+        if (inputFlag > 2)
+        {
+            break;
+        }
+        inputFlag = 3;
     }
 
     // Input handling based on the input flag
@@ -94,14 +108,6 @@ while (true)
             inputFlag = 0;
             display.Print("ProductList is updated!", 4, 0, 3);
             Thread.Sleep(milliseconds);
-/*
-            foreach (Product product in listProduct)
-            {
-                prodList.Print(product, 1, prodListPosX, prodListPosY + counter);
-                counter++;
-            }
-            Thread.Sleep(milliseconds);
-*/
         }
         else
         {
@@ -109,8 +115,48 @@ while (true)
             Thread.Sleep(milliseconds);
         }
     }
- }
+    if (inputFlag == 3)
+    {
+        display.Print("Product list ", 0, 0, 0);
 
+        // Sorting the product list
+        List<Product> sortedProdList = productList.OrderBy(Product => Product.ProductPrice).ToList();
+
+        // Displaying the product list
+        foreach (Product product in sortedProdList)
+        {
+            prodList.Print(product, 1, prodListPosX, prodListPosY + counter);
+            counter++;
+//          prodListPosY++;
+        }
+        // Calculate the sum of price with LINQ 
+        prodList.ClearAltCursurPos();
+        counter++;
+//        prodListPosY++;
+        prodList.Print("(" + productList.Sum(Product => Product.ProductPrice) + ")", 3, prodListPosX + 29, prodListPosY + counter);
+        inputFlag = 4;    
+    }
+    if(inputFlag == 4)
+        {
+        display.Print("Search product in list [S/s] | Add more products [A/a] to Quit enter [Q/q] [Quit] [Exit]", 0, 0, 1);
+        if (input.ToUpper() == "A") 
+        {
+        
+        for (int i = 0;i <= counter + prodListPosY;i++)
+        {
+            if (i != prodListPosY)
+            {
+                display.ClearLine(0, i);                }
+            }
+ //           Console.Clear();
+            inputFlag = 0;
+            counter = 0;
+        }
+    }
+}
+
+
+/*
 // Sorting the product list
 List<Product> sortedProdList = productList.OrderBy(Product => Product.ProductPrice).ToList();
 
@@ -124,6 +170,7 @@ foreach (Product product in sortedProdList)
 prodList.ClearAltCursurPos();
 prodListPosY++;
 prodList.Print("(" + productList.Sum(Product => Product.ProductPrice) + ")", 3, prodListPosX + 29, prodListPosY);
+*/
 Console.ResetColor();
 
 // Display class for handling different types of messages
@@ -171,10 +218,9 @@ class Display
         PosY = posY;
         TitleColor = titleColor;
         NormalColor = normalColor;
-        ErrorColor = ConsoleColor.White;
+        ErrorColor = ConsoleColor.White; // Default colors
         InfoColor = infoColor;
-        DoneColor = ConsoleColor.Blue;
-
+        DoneColor = ConsoleColor.White;  // Default colors
     }
 
     // Methods for clearing lines
@@ -189,13 +235,6 @@ class Display
         Console.SetCursorPosition(posX, posY);
         Console.Write(new String(' ', Console.BufferWidth));
     }
-/*
-    public void ClearLine(int msgType, int posX, int posY)
-    {
-        Console.SetCursorPosition(PosX, PosY);
-        Console.Write(new String(' ', Console.BufferWidth));
-    }
-*/
 
     // Metods for set the positions
     public void SetCursurPos(int posX, int posY)
@@ -237,14 +276,6 @@ class Display
         {
             AltPosX = posX;
             AltPosY = posY;
-/*
-            if (AltPosX == 0 && AltPosY == 0)
-            {
-//                ClearLine(AltPosX, AltPosY);
-                AltPosX = posX;
-                AltPosY = posY;
-            }
-*/
         }
         SetCursurPos(posX, posY);
         PrintOut(msg, msgType);
